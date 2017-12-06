@@ -1,7 +1,7 @@
 import mysql.connector as mysql
 
 from config import properties
-from lib.users.model.linux import Implementation as LinuxUser
+from lib.users.model.zeppelin import Implementation as ZeppelinUser
 from lib.exceptions.dao import Implementation as DAOException
 
 class Implementation:
@@ -19,11 +19,6 @@ class Implementation:
         if len(dao_response["users"]) > 0:
             raise DAOException("User already exists")
 
-        dao_response = self.get_by_attr("uid",user.get_uid())
-
-        if len(dao_response["users"]) > 0:
-            raise DAOException("User already exists")
-
         conn = None
         cursor = None
 
@@ -36,8 +31,8 @@ class Implementation:
                 password = self.__db_password
             )
 
-            sql = "INSERT INTO users VALUES ('%s','%s',%s,%s)" % (
-                user.get_username(),user.get_password(),user.get_uid(),user.get_gid())
+            sql = "INSERT INTO users VALUES ('%s','%s','%s')" % (
+                user.get_username(),user.get_password(),user.get_salt())
 
             cursor = conn.cursor()
             cursor.execute(sql)
@@ -134,7 +129,7 @@ class Implementation:
             cursor.execute(sql)
 
             for row in cursor:
-                user = LinuxUser(row[0],row[1],row[2],row[3])
+                user = ZeppelinUser(row[0],row[1],row[2])
                 response["users"].append(user)
 
         except Exception as e:
@@ -172,7 +167,7 @@ class Implementation:
             cursor.execute(sql)
 
             for row in cursor:
-                user = LinuxUser(row[0],row[1],row[2],row[3])
+                user = ZeppelinUser(row[0],row[1],row[2])
                 response["users"].append(user)
 
         except Exception as e:
