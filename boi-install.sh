@@ -16,7 +16,7 @@ if [[ $# > 0 ]]; then
         case "$1" in
             "-repo-s3uri" )
                 shift
-                BOI_REPO_S3_BUCKET_NAME="$1"
+                REPO_S3_URI="$1"
                 printf "Argument <%s>,Value <%s>\n" "s3repo" $REPO_S3_URI
                 ;;
             "-new" )
