@@ -1,5 +1,8 @@
 #!/bin/bash
 
+BOI_DIR="/opt/boi"
+BOI_3P_DIR="$BOI_DIR/3p"
+
 ARG_KEY_REPO_S3_URI="-repo-s3uri"
 ARG_KEY_NEW_SETUP="-new"
 
@@ -41,5 +44,19 @@ if [[ "$ARG_VALUE_REPO_S3_URI" = "" ]]; then
     printf "[ERROR] Argument <%s> is missing or invalid.\n" "$ARG_KEY_REPO_S3_URI"
     exit 1
 fi
+
+printf "<<< Done.\n\n"
+
+#===============================================================================
+#    INSTALLING BOI
+#===============================================================================
+printf ">>> Loading properties ...\n"
+
+printf "> Setting up boi dir <%s>" "$BOI_DIR"
+mkdir -p $BOI_DIR
+
+printf "> Downloading <3p> dir from <%s> to <%s>" "$ARG_VALUE_REPO_S3_URI" "$BOI_3P_DIR"
+mkdir -p "$BOI_3P_DIR"
+aws s3 cp "$ARG_VALUE_REPO_S3_URI/3p/*" "$BOI_3P_DIR"
 
 printf "<<< Done.\n\n"
