@@ -8,6 +8,28 @@ from lib.utils import cipher
 
 from lib.users.dao.linux import Implementation as LinuxDAO
 
+params = {
+    "dir" : None
+}
+
+def display_help():
+    print("""
+Usage:
+    boi-cli.py users sync [options]
+
+Available Options:
+    [parameter]
+        Is an immediate action
+
+Available Parameters:
+    [-h | -help]
+        Type: bool
+        Required: no
+    [-dir <dir_path>]
+        Type: string
+        Required: yes
+    """)
+
 def setup_user_group(user):
 
     response = {
@@ -110,7 +132,7 @@ def setup_dirs(user):
     create_user_rstudio_dir = False
     create_user_outputs_dir = False
 
-    user_dir = properties.jerhz_users_dir + "/" + user.get_username()
+    user_dir = params["dir"] + "/" + user.get_username()
     user_dir_exists = os.path.isdir(user_dir)
 
     if not user_dir_exists:
@@ -132,7 +154,7 @@ def setup_dirs(user):
                 create_user_outputs_dir = True
 
     if create_user_jupyter_dir:
-        user_dir = properties.jerhz_users_dir + "/" + user.get_username() + "/jupyter"
+        user_dir = params["dir"] + "/" + user.get_username() + "/jupyter"
         print("Creating user jupyter dir <{}>".format(user_dir))
         shell_response = shell.run(["mkdir","-p",user_dir])
         print("mkdir: " + str(shell_response))
@@ -147,7 +169,7 @@ def setup_dirs(user):
                 response["status_code"] = 1
 
     if create_user_rstudio_dir:
-        user_dir = properties.jerhz_users_dir + "/" + user.get_username() + "/rstudio"
+        user_dir = params["dir"] + "/" + user.get_username() + "/rstudio"
         print("Creating user rstudio dir <{}>".format(user_dir))
         shell_response = shell.run(["mkdir","-p",user_dir])
         print("mkdir: " + str(shell_response))
@@ -162,7 +184,7 @@ def setup_dirs(user):
                 response["status_code"] = 1
 
     if create_user_outputs_dir:
-        user_dir = properties.jerhz_users_dir + "/" + user.get_username() + "/outputs"
+        user_dir = params["dir"] + "/" + user.get_username() + "/outputs"
         print("Creating user outputs dir <{}>".format(user_dir))
         shell_response = shell.run(["mkdir","-p",user_dir])
         print("mkdir: " + str(shell_response))
@@ -196,20 +218,20 @@ def setup_links(user):
     setup_outputs_link = False
 
     user_home_dir = "/home/" + user.get_username()
-    user_jerhz_dir = properties.jerhz_users_dir + "/" + user.get_username()
+    user_boi_dir = params["dir"] + "/" + user.get_username()
 
     user_home_dir_exists = os.path.isdir(user_home_dir)
-    user_jerhz_dir_exists = os.path.isdir(user_jerhz_dir)
+    user_boi_dir_exists = os.path.isdir(user_boi_dir)
 
     user_home_jupyter = user_home_dir + "/jupyter"
     user_home_rstudio = user_home_dir + "/rstudio"
     user_home_outputs = user_home_dir + "/outputs"
 
-    user_jerhz_jupyter = user_jerhz_dir + "/jupyter"
-    user_jerhz_rstudio = user_jerhz_dir + "/rstudio"
-    user_jerhz_outputs = user_jerhz_dir + "/outputs"
+    user_boi_dir_jupyter = user_boi_dir + "/jupyter"
+    user_boi_dir_rstudio = user_boi_dir + "/rstudio"
+    user_boi_dir_outputs = user_boi_dir + "/outputs"
 
-    if user_home_dir_exists and user_jerhz_dir_exists:
+    if user_home_dir_exists and user_boi_dir_exists:
         setup_jupyter_link = True
         setup_rstudio_link = True
         setup_outputs_link = True
@@ -221,7 +243,7 @@ def setup_links(user):
             response["err"] = shell_response["err"]
             response["status_code"] = 1
         elif not shell_response["out"]:
-            shell_response = shell.run(["ln","-s",user_jerhz_jupyter,user_home_jupyter])
+            shell_response = shell.run(["ln","-s",user_boi_dir_jupyter,user_home_jupyter])
             print("ln[jupyter]: " + str(shell_response))
             if shell_response["status_code"] != 0:
                 response["err"] = shell_response["err"]
@@ -234,7 +256,7 @@ def setup_links(user):
             response["err"] = shell_response["err"]
             response["status_code"] = 1
         elif not shell_response["out"]:
-            shell_response = shell.run(["ln","-s",user_jerhz_rstudio,user_home_rstudio])
+            shell_response = shell.run(["ln","-s",user_boi_dir_rstudio,user_home_rstudio])
             print("ln[rstudio]: " + str(shell_response))
             if shell_response["status_code"] != 0:
                 response["err"] = shell_response["err"]
@@ -247,7 +269,7 @@ def setup_links(user):
             response["err"] = shell_response["err"]
             response["status_code"] = 1
         elif not shell_response["out"]:
-            shell_response = shell.run(["ln","-s",user_jerhz_outputs,user_home_outputs])
+            shell_response = shell.run(["ln","-s",user_boi_dir_outputs,user_home_outputs])
             print("ln[rstudio]: " + str(shell_response))
             if shell_response["status_code"] != 0:
                 response["err"] = shell_response["err"]
@@ -262,18 +284,54 @@ def setup_links(user):
 
 def run(args):
 
+    if len(args) == 0:
+        display_help()
+        sys.exit(0)
+
+    while len(args) > 0:
+
+        p = None
+
+        try:
+            p = args.pop(0)
+        except:
+            print("[ERROR] Unable to read parameter.")
+            sys.exit(1)
+
+        if p in ["-h","-help"]:
+            display_help()
+            sys.exit(0)
+
+        elif p in ["-dir"]:
+            v = None
+            try:
+                v = args.pop(0).strip()
+            except:
+                print("[ERROR] Unable to read value for parameter <{0}>".format(p))
+                sys.exit(1)
+            params["dir"] = v
+
+        else:
+            print("[ERROR] Invalid parameter <{0}>".format(p))
+            sys.exit(1)
+
     print(">>> Sync in progress, please wait ... \n")
 
-    print("Checking jerhz users dir <{}>\n".format(properties.jerhz_users_dir))
-    if not os.path.isdir(properties.jerhz_users_dir):
+    print("Checking users dir <{}>\n".format(params["dir"]))
+    if not os.path.isdir(params["dir"]):
         print("[ERROR]: Dir not found or invalid")
         sys.exit(1)
 
-    user_dao_linux = LinuxDAO()
+    linux_user_dao = LinuxDAO(
+        properties.boi_linux_db_host,
+        properties.boi_linux_db_name,
+        properties.boi_linux_db_user,
+        properties.boi_linux_db_password
+    )
 
-    user_list = user_dao_linux.get_all()
+    dao_response = linux_user_dao.get_all()
 
-    for user in user_list:
+    for user in dao_response["users"]:
 
         response = None
 

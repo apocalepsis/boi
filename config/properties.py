@@ -1,12 +1,7 @@
-# General Properties
+# EFS Properties
 # ======================================
 
-boi_aws_region="us-west-2"
-
-# S3 Properties
-# ======================================
-
-boi_aws_s3_bucket_name="aws.boi"
+efs_host="fs-39e25e90.efs.us-west-2.amazonaws.com"
 
 # DB Properties
 # ======================================

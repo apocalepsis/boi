@@ -68,8 +68,7 @@ def run(args):
         subcommands.delete_user.run(args)
 
     elif option in ["sync"]:
-        pass
-        #subcommands.sync.run(args)
+        subcommands.sync.run(args)
 
     else:
         print("[ERROR] Invalid option <{}>. Please use -h or -help for more information".format(option))
