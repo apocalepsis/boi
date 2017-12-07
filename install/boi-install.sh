@@ -97,6 +97,26 @@ printf "done.\n"
 printf "<<< Done.\n\n"
 
 #===============================================================================
+#    EFS SETUP
+#===============================================================================
+printf ">>> Setting up efs <%s> ... \n" "$BOI_EFS_DIR"
+
+sudo mkdir -p "$BOI_EFS_DIR"
+sudo mount -t nfs -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 $EFS_HOST:/ $BOI_EFS_DIR
+
+if [[ $ARG_VALUE_NEW_SETUP = 1 ]]; then
+    printf "> Setting up new install ... \n"
+    sudo rm -rf $BOI_EFS_DIR/*
+    sudo mkdir -p "$BOI_EFS_USERS_DIR"
+    sudo mkdir -p "$BOI_EFS_ZEPPELIN_DIR"
+    sudo mkdir -p "$BOI_EFS_ZEPPELIN_NB_DIR"
+    sudo chmod -R o+w "$BOI_EFS_ZEPPELIN_DIR"
+    printf "done.\n"
+fi
+
+printf "<<< Done.\n\n"
+
+#===============================================================================
 #    LOADING PROPERTIES
 #===============================================================================
 printf ">>> Loading Properties ...\n"
@@ -198,29 +218,14 @@ sudo sed -i "s/ds.user=[^ ]*/ds.user=$BOI_ZEPPELIN_DB_USER/g" "$ZEPPELIN_CONF_DI
 sudo sed -i "s/ds.password=[^ ]*/ds.password=$BOI_ZEPPELIN_DB_PASSWORD/g" "$ZEPPELIN_CONF_DIR/shiro.ini"
 printf "done.\n"
 
+printf "> Setting up notebook dir ... \n"
+sudo rm -rf "$ZEPPELIN_NB_DIR"
+sudo ln -s "$BOI_EFS_ZEPPELIN_NB_DIR" "$ZEPPELIN_NB_DIR"
+printf "done.\n"
+
 printf "> Starting zeppelin service ... \n"
 sudo start zeppelin
 printf "done.\n"
-
-printf "<<< Done.\n\n"
-
-#===============================================================================
-#    EFS SETUP
-#===============================================================================
-printf ">>> Setting up efs <%s> ... \n" "$BOI_EFS_DIR"
-
-sudo mkdir -p "$BOI_EFS_DIR"
-sudo mount -t nfs -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 $EFS_HOST:/ $BOI_EFS_DIR
-
-if [[ $ARG_VALUE_NEW_SETUP = 1 ]]; then
-    printf "> Setting up new install ... \n"
-    sudo rm -rf $BOI_EFS_DIR/*
-    sudo mkdir -p "$BOI_EFS_USERS_DIR"
-    sudo mkdir -p "$BOI_EFS_ZEPPELIN_DIR"
-    sudo mkdir -p "$BOI_EFS_ZEPPELIN_NB_DIR"
-    sudo chmod -R o+w "$BOI_EFS_ZEPPELIN_DIR"
-    printf "done.\n"
-fi
 
 printf "<<< Done.\n\n"
 
